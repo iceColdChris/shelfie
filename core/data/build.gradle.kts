@@ -47,4 +47,11 @@ dependencies {
 
     // Testing
     testImplementation(libs.junit)
+
+    // Instrumented tests
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.coroutines.test)
+    androidTestImplementation(libs.turbine)
 }
