@@ -1,0 +1,92 @@
+# -----------------------------------------------
+# Build outputs
+# -----------------------------------------------
+**/build/
+/captures/
+
+# -----------------------------------------------
+# Gradle
+# NOTE: gradle/, gradlew, gradlew.bat, gradle.properties
+# must be committed — they pin the Gradle version and
+# enable reproducible builds without a local install.
+# -----------------------------------------------
+.gradle/
+local.properties
+
+# -----------------------------------------------
+# Android artifacts
+# -----------------------------------------------
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# NDK / CMake
+.externalNativeBuild/
+.cxx/
+
+# Profiling
+*.hprof
+
+# -----------------------------------------------
+# Secrets & signing — NEVER commit these
+# -----------------------------------------------
+*.jks
+*.keystore
+key.properties
+secrets.properties
+**/secrets/
+google-services.json
+
+# -----------------------------------------------
+# Environment / config overrides
+# -----------------------------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------------------------
+# Test & coverage outputs
+# -----------------------------------------------
+**/test-results/
+**/coverage/
+*.exec
+
+# Lint outputs (generated reports, not source)
+**/lint/intermediates/
+**/lint/generated/
+**/lint/outputs/
+**/lint/tmp/
+
+# -----------------------------------------------
+# IntelliJ / Android Studio
+# -----------------------------------------------
+*.iml
+/.idea/caches/
+/.idea/libraries/
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/migrations.xml
+
+# -----------------------------------------------
+# OS metadata
+# -----------------------------------------------
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# -----------------------------------------------
+# Logs & temp files
+# -----------------------------------------------
+*.log
+*.tmp
+*.bak
+*.orig
