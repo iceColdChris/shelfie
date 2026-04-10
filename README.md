@@ -179,18 +179,52 @@ older tutorials you might find online:
 
 ---
 
-## Running tests
+## Testing
+
+### Test strategy
+
+The project has two layers of tests that each catch different classes of bugs:
+
+| Layer | Tool | What it tests | Where |
+|---|---|---|---|
+| Unit (JVM) | JUnit 4 + MockK + Turbine | Business logic in isolation | `src/test/` in each feature module |
+| DAO (instrumented) | JUnit 4 + Room in-memory | Real SQL queries and Flow reactivity | `core/data/src/androidTest/` |
+
+> **JUnit 5** has no native Android support for instrumented tests and requires a third-party Gradle plugin for JVM-only tests. Given the project is stable on JUnit 4 (`4.13.2`, the current latest), migrating adds complexity with no meaningful benefit.
+
+### Running unit tests
 
 ```bash
-# Unit tests for all modules
+# All modules at once
 ./gradlew test
 
 # A single module
-./gradlew :feature:books:test
+./gradlew :feature:books:testDebugUnitTest
 ```
 
-- ViewModels and UseCases have unit tests using **MockK**.
-- Room DAOs use an in-memory database for integration tests.
+This covers **115 tests** across 14 classes:
+- `feature:books` — `BookMapper`, `BookRepositoryImpl`, `BooksViewModel`, `BookDetailViewModel`, four use case tests
+- `feature:readinglist` — `ReadingListMapper`, `ReadingListRepositoryImpl`, `ReadingListViewModel`, `UpdateProgressUseCase`
+- `feature:stats` — `StatsRepositoryImpl` (streak + monthly chart algorithms), `StatsViewModel`
+
+All ViewModel tests use a shared `MainDispatcherRule` (a JUnit4 `TestWatcher`) instead of manual `@Before/@After` dispatcher setup.
+
+### Running DAO instrumented tests
+
+A connected device or emulator is required.
+
+```bash
+./gradlew :core:data:connectedDebugAndroidTest
+```
+
+This covers **43 tests** across `BookDaoTest` and `ReadingListDaoTest` using `Room.inMemoryDatabaseBuilder`. Each test gets a fresh, isolated database via `@Before`/`@After`.
+
+### CI (GitHub Actions)
+
+- **Unit tests** run on every push and every pull request targeting `main` (fast, JVM-only, no device needed).
+- **DAO instrumented tests** run on every push to `main` and on pull requests targeting `main` using a managed x86_64 emulator via `reactivecircus/android-emulator-runner`.
+
+See `.github/workflows/` for the workflow definitions.
 
 ---
 
