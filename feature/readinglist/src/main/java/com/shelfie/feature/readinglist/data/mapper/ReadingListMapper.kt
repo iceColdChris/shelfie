@@ -4,7 +4,7 @@ import com.shelfie.core.data.database.entity.ReadingListEntry
 import com.shelfie.feature.readinglist.domain.model.ReadingListBook
 import com.shelfie.feature.readinglist.domain.model.Shelf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 internal object ReadingListMapper {
 

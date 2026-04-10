@@ -6,10 +6,10 @@ import com.shelfie.feature.readinglist.data.mapper.ReadingListMapper.toEntity
 import com.shelfie.feature.readinglist.domain.model.ReadingListBook
 import com.shelfie.feature.readinglist.domain.model.Shelf
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class ReadingListMapperTest {

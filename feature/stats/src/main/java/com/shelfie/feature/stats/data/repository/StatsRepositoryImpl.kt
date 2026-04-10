@@ -7,13 +7,13 @@ import com.shelfie.feature.stats.domain.repository.StatsRepository
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 import javax.inject.Inject
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 internal class StatsRepositoryImpl @Inject constructor(
     private val dao: ReadingListDao
@@ -55,7 +55,7 @@ internal class StatsRepositoryImpl @Inject constructor(
         var streak = 1
         for (i in 0 until dates.size - 1) {
             val diff = dates[i].toEpochDays() - dates[i + 1].toEpochDays()
-            if (diff == 1) streak++ else break
+            if (diff.toInt() == 1) streak++ else break
         }
         return streak
     }

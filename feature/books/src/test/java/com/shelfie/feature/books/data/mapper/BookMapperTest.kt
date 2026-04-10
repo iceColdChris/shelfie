@@ -2,8 +2,8 @@ package com.shelfie.feature.books.data.mapper
 
 import com.shelfie.core.data.database.entity.CachedBookEntity
 import com.shelfie.core.data.database.entity.FavoriteBookEntity
-import com.shelfie.feature.books.data.mapper.BookMapper.toCachedEntity
 import com.shelfie.feature.books.data.mapper.BookMapper.toBookDetail
+import com.shelfie.feature.books.data.mapper.BookMapper.toCachedEntity
 import com.shelfie.feature.books.data.mapper.BookMapper.toDomain
 import com.shelfie.feature.books.data.mapper.BookMapper.toFavoriteEntity
 import com.shelfie.feature.books.data.remote.dto.OpenLibraryBookDto

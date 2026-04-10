@@ -3,10 +3,10 @@ package com.shelfie.feature.readinglist.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shelfie.feature.readinglist.domain.model.Shelf
+import com.shelfie.feature.readinglist.domain.repository.ReadingListRepository
 import com.shelfie.feature.readinglist.domain.usecase.GetShelfBooksUseCase
 import com.shelfie.feature.readinglist.domain.usecase.RemoveFromShelfUseCase
 import com.shelfie.feature.readinglist.domain.usecase.UpdateProgressUseCase
-import com.shelfie.feature.readinglist.domain.repository.ReadingListRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job

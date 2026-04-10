@@ -5,11 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shelfie.core.data.database.dao.ReadingListDao
 import com.shelfie.core.data.database.entity.ReadingListEntry
-import com.shelfie.feature.books.domain.model.Book
 import com.shelfie.feature.books.domain.usecase.GetBookDetailUseCase
 import com.shelfie.feature.books.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.datetime.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -17,6 +15,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Clock
 
 @HiltViewModel
 class BookDetailViewModel @Inject constructor(

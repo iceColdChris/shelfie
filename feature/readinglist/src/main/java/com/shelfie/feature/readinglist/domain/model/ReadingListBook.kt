@@ -2,7 +2,7 @@ package com.shelfie.feature.readinglist.domain.model
 
 import androidx.compose.runtime.Immutable
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * Domain model representing a book on the user's reading list.

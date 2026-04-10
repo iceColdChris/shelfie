@@ -9,8 +9,8 @@ import com.shelfie.feature.readinglist.domain.model.Shelf
 import com.shelfie.feature.readinglist.domain.repository.ReadingListRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Clock
 import javax.inject.Inject
+import kotlin.time.Clock
 
 internal class ReadingListRepositoryImpl @Inject constructor(
     private val dao: ReadingListDao

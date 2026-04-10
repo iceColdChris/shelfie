@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 
 class StatsRepositoryImplTest {
@@ -210,7 +211,7 @@ class StatsRepositoryImplTest {
      * regardless of the time of day the test runs.
      */
     private fun daysAgo(n: Int): Long =
-        (kotlinx.datetime.Clock.System.now() - (n * 25).hours).toEpochMilliseconds()
+        (Clock.System.now() - (n * 25).hours).toEpochMilliseconds()
 
     private fun entry(finishedAt: Long?) = ReadingListEntry(
         bookId = "b${finishedAt}",

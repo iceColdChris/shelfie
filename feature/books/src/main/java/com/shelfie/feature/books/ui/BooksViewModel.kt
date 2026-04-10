@@ -6,6 +6,8 @@ import com.shelfie.feature.books.domain.usecase.GetFavoriteBooksUseCase
 import com.shelfie.feature.books.domain.usecase.SearchBooksUseCase
 import com.shelfie.feature.books.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,8 +21,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
