@@ -10,8 +10,14 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.minus
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.todayIn
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.hours
 
 class DefaultStatsRepositoryTest {
 
@@ -127,15 +133,14 @@ class DefaultStatsRepositoryTest {
     fun `monthly chart counts books finished this month in the last slot`() = runTest {
         setupDao(finishedBooks = listOf(
             entry(finishedAt = daysAgo(0)),
-            entry(finishedAt = daysAgo(3)),
+            entry(finishedAt = firstOfThisMonth()),
         ))
 
         repository.observeStats().test {
             val chart = awaitItem().monthlyFinished
-            // The last entry is the current month — both books are within the last few days
-            // so they should both appear in the last slot (assuming same calendar month)
+            // Today and the 1st are always in the current month, the last slot.
             assertEquals(6, chart.size)
-            assertTrue("Current month should have at least 2 books", chart.last().count >= 2)
+            assertEquals(2, chart.last().count)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -205,13 +210,19 @@ class DefaultStatsRepositoryTest {
 
     // ---- Helpers ----
 
-    /**
-     * Returns an epoch millisecond timestamp [n] whole days before the current moment.
-     * Using 25-hour offsets ensures the dates are reliably on different calendar days
-     * regardless of the time of day the test runs.
-     */
-    private fun daysAgo(n: Int): Long =
-        (Clock.System.now() - (n * 25).hours).toEpochMilliseconds()
+    // Timestamps are built from calendar dates in the system zone, as the repository reads them.
+    // Fixed-hour offsets drift across midnight (25h * 2 = 50h lands 3 days back after 00:00-02:00).
+
+    /** Noon, local time, [n] calendar days before today. Noon keeps clear of DST transitions. */
+    private fun daysAgo(n: Int): Long = atNoon(today().minus(n, DateTimeUnit.DAY))
+
+    /** Noon on the 1st of the current month. */
+    private fun firstOfThisMonth(): Long = today().let { atNoon(LocalDate(it.year, it.month, 1)) }
+
+    private fun today(): LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
+
+    private fun atNoon(date: LocalDate): Long =
+        date.atTime(12, 0).toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
 
     private fun entry(finishedAt: Long?) = ReadingListEntity(
         bookId = "b${finishedAt}",
