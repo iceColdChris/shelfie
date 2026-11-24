@@ -1,9 +1,9 @@
 package com.shelfie.feature.stats.ui
 
-import com.shelfie.feature.stats.domain.model.MonthlyCount
-import com.shelfie.feature.stats.domain.model.ReadingStats
-import com.shelfie.feature.stats.domain.usecase.GetReadingStatsUseCase
-import com.shelfie.feature.stats.testutil.MainDispatcherRule
+import com.shelfie.core.model.MonthlyCount
+import com.shelfie.core.model.ReadingStats
+import com.shelfie.core.domain.GetReadingStatsUseCase
+import com.shelfie.core.testing.MainDispatcherRule
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.collections.immutable.persistentListOf

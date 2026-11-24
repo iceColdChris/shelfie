@@ -23,39 +23,57 @@ The project is split into **Gradle modules** so that features cannot accidentall
 each other and build times stay fast as the project grows.
 
 ```
-:app                  -- Entry point: Application class, single Activity, NavHost
-:core:ui              -- Shared design system (theme, colors, typography, reusable composables)
-:core:data            -- Shared persistence & networking (Room database, Retrofit, Hilt modules)
-:feature:books        -- Book search & favorites
-:feature:readinglist  -- Personal reading shelf management
-:feature:stats        -- Aggregated reading statistics
+:app                  -- Entry point: Application class, single Activity, NavHost, Hilt graph
+:feature:books        -- Book search, favorites & book detail (UI only)
+:feature:readinglist  -- Personal reading shelf management (UI only)
+:feature:stats        -- Aggregated reading statistics (UI only)
+:core:domain          -- Use cases: the only way a feature reaches data
+:core:data            -- Repository interfaces, implementations and mappers
+:core:database        -- Room database, DAOs, entities
+:core:network         -- Retrofit/OkHttp/Moshi setup, Open Library API, DTOs
+:core:model           -- Pure Kotlin domain models shared by every layer
+:core:ui              -- Shared design system (theme, colors, typography)
+:core:testing         -- Shared test rules (MainDispatcherRule)
+build-logic           -- Convention plugins that configure all of the above
 ```
 
-Each feature module is self-contained and follows the same internal package layout
-described below.
+Dependencies point one way:
+
+```
+app -> feature -> core:domain -> core:data -> core:database, core:network
+                      \______________\__________ core:model
+```
+
+A feature never depends on another feature, on `:core:data`, or on a data source. That is
+enforced by Gradle, not by convention: `:core:domain` declares `:core:data` as
+`implementation`, so repositories are not even on a feature's compile classpath.
 
 ---
 
-## Feature module blueprint
+## Module blueprints
 
-Every feature follows this exact package structure:
+A feature module holds only its UI layer:
 
 ```
-com.shelfie.feature.<name>
-├── data
-│   ├── remote/          Retrofit API interface + DTO classes
-│   ├── mapper/          Functions that convert DTOs/Entities -> Domain models
-│   └── repository/      Repository *implementation* (always `internal`)
-├── domain
-│   ├── model/           Pure Kotlin data classes -- the "truth" the UI works with
-│   ├── repository/      Repository *interface* (public contract)
-│   └── usecase/         Single-purpose business-logic classes
-├── di/                  Hilt module that wires everything together
-└── ui/
-    ├── <Name>Screen.kt       Stateless @Composable entry point
-    ├── <Name>ViewModel.kt    Hilt ViewModel -- owns the state
-    ├── <Name>UiState.kt      Immutable data class describing what the screen shows
-    └── <Name>UiEvent.kt      Sealed interface for every user action
+com.shelfie.feature.<name>.ui
+├── <Name>Screen.kt       Stateless @Composable entry point
+├── <Name>ViewModel.kt    Hilt ViewModel -- owns the state, calls use cases
+├── <Name>UiState.kt      Immutable data class describing what the screen shows
+└── <Name>UiEvent.kt      Sealed interface for every user action
+```
+
+The layers below it are shared, because more than one feature needs the same data (the
+reading list is read by all three):
+
+```
+com.shelfie.core.domain            Single-purpose use cases
+com.shelfie.core.data
+├── repository/                    Repository interfaces (public) + implementations (`internal`)
+├── mapper/                        DTO/Entity -> model conversions (`internal`)
+└── di/                            Hilt module binding interface to implementation
+com.shelfie.core.database          AppDatabase, dao/, entity/, converter/, di/
+com.shelfie.core.network           OpenLibraryApi, dto/, di/
+com.shelfie.core.model             Pure Kotlin data classes -- the "truth" the UI works with
 ```
 
 ### Why this matters
@@ -64,8 +82,25 @@ Android newcomers often put everything in one package. Separating layers gives y
 
 - **Testability** -- you can unit-test a UseCase without spinning up a real database.
 - **Compile isolation** -- changing UI code does not recompile the data layer.
-- **Enforced boundaries** -- the `internal` keyword prevents other modules from reaching
-  into implementation details.
+- **Enforced boundaries** -- module dependencies and the `internal` keyword prevent a
+  screen from reaching a DAO, a DTO or a repository implementation.
+
+### Build configuration
+
+Each module's `build.gradle.kts` applies one convention plugin from
+`build-logic/convention` and adds only what is specific to it:
+
+| Plugin | For |
+|---|---|
+| `shelfie.android.application` | `:app` |
+| `shelfie.android.feature` | feature modules (Compose, Hilt, core modules, test libraries) |
+| `shelfie.android.library` | Android core modules |
+| `shelfie.android.library.compose` | Android modules with Compose UI |
+| `shelfie.android.hilt` | any module with Hilt bindings or `@Inject` constructors |
+| `shelfie.jvm.library` | pure Kotlin modules (`:core:model`, `:core:testing`) |
+
+SDK levels and Java target are set once, in `shelfie.android.library`. Gradle plugin
+versions live in `gradle/libs.versions.toml` as libraries that `build-logic` depends on.
 
 ---
 
@@ -100,9 +135,10 @@ Common conventions in this project:
 
 Kotlin's `internal` means "visible only inside this Gradle module." In this project:
 
-- Repository **implementations**, mappers, Retrofit interfaces, and Hilt modules are `internal`.
+- Repository **implementations**, mappers, `AppDatabase`, and Hilt modules are `internal`.
 - Repository **interfaces**, UseCases, and domain models are **public** because other modules
-  (like `:app`) need to see them.
+  need to see them. DAOs, entities, the Retrofit interface and DTOs are public too, but only
+  `:core:data` depends on the modules that hold them.
 
 If you forget `internal` on an implementation class, other modules could bypass the
 interface and depend on concrete details -- defeating the whole point of the architecture.
@@ -138,8 +174,9 @@ Hilt generates the wiring so you never manually create objects. Key things to kn
 - **`@HiltAndroidApp`** on `SampleApp` (the `Application` class) -- bootstraps Hilt.
 - **`@AndroidEntryPoint`** on `MainActivity` -- lets Hilt inject into the Activity.
 - **`@HiltViewModel`** on ViewModels -- lets Hilt provide constructor dependencies.
-- **`@InstallIn(SingletonComponent::class)`** for app-wide singletons (Retrofit, Room).
-- **`@InstallIn(ViewModelComponent::class)`** for feature-scoped bindings (repositories, APIs).
+- **`@InstallIn(SingletonComponent::class)`** for everything in the data layer: Retrofit and
+  Room are `@Singleton`; repository bindings are unscoped because repositories hold no state.
+- Feature modules have no Hilt modules. Their ViewModels get use cases by constructor injection.
 - **`@Binds`** maps an interface to its implementation (e.g. `BookRepository` to
   `BookRepositoryImpl`).
 - **`@Provides`** creates instances Hilt cannot construct on its own (Retrofit interfaces, etc.).
@@ -187,8 +224,8 @@ The project has two layers of tests that each catch different classes of bugs:
 
 | Layer | Tool | What it tests | Where |
 |---|---|---|---|
-| Unit (JVM) | JUnit 4 + MockK + Turbine | Business logic in isolation | `src/test/` in each feature module |
-| DAO (instrumented) | JUnit 4 + Room in-memory | Real SQL queries and Flow reactivity | `core/data/src/androidTest/` |
+| Unit (JVM) | JUnit 4 + MockK + Turbine | Business logic in isolation | `src/test/` in `core/data`, `core/domain` and each feature module |
+| DAO (instrumented) | JUnit 4 + Room in-memory | Real SQL queries and Flow reactivity | `core/database/src/androidTest/` |
 
 > **JUnit 5** has no native Android support for instrumented tests and requires a third-party Gradle plugin for JVM-only tests. Given the project is stable on JUnit 4 (`4.13.2`, the current latest), migrating adds complexity with no meaningful benefit.
 
@@ -202,19 +239,21 @@ The project has two layers of tests that each catch different classes of bugs:
 ./gradlew :feature:books:testDebugUnitTest
 ```
 
-This covers **115 tests** across 14 classes:
-- `feature:books` — `BookMapper`, `BookRepositoryImpl`, `BooksViewModel`, `BookDetailViewModel`, four use case tests
-- `feature:readinglist` — `ReadingListMapper`, `ReadingListRepositoryImpl`, `ReadingListViewModel`, `UpdateProgressUseCase`
-- `feature:stats` — `StatsRepositoryImpl` (streak + monthly chart algorithms), `StatsViewModel`
+This covers **116 tests** across 14 classes:
+- `core:data` — `BookMapper`, `ReadingListMapper`, `BookRepositoryImpl`, `ReadingListRepositoryImpl`, `StatsRepositoryImpl` (streak + monthly chart algorithms)
+- `core:domain` — five use case tests
+- `feature:books` — `BooksViewModel`, `BookDetailViewModel`
+- `feature:readinglist` — `ReadingListViewModel`
+- `feature:stats` — `StatsViewModel`
 
-All ViewModel tests use a shared `MainDispatcherRule` (a JUnit4 `TestWatcher`) instead of manual `@Before/@After` dispatcher setup.
+All ViewModel tests use the `MainDispatcherRule` from `:core:testing` (a JUnit4 `TestWatcher`) instead of manual `@Before/@After` dispatcher setup.
 
 ### Running DAO instrumented tests
 
 A connected device or emulator is required.
 
 ```bash
-./gradlew :core:data:connectedDebugAndroidTest
+./gradlew :core:database:connectedDebugAndroidTest
 ```
 
 This covers **43 tests** across `BookDaoTest` and `ReadingListDaoTest` using `Room.inMemoryDatabaseBuilder`. Each test gets a fresh, isolated database via `@Before`/`@After`.

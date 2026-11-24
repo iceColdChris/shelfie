@@ -45,8 +45,8 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.shelfie.feature.stats.domain.model.MonthlyCount
-import com.shelfie.feature.stats.domain.model.ReadingStats
+import com.shelfie.core.model.MonthlyCount
+import com.shelfie.core.model.ReadingStats
 
 @Composable
 fun StatsScreen(

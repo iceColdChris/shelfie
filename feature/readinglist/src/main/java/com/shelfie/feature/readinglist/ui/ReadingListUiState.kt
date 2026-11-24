@@ -1,8 +1,8 @@
 package com.shelfie.feature.readinglist.ui
 
 import androidx.compose.runtime.Immutable
-import com.shelfie.feature.readinglist.domain.model.ReadingListBook
-import com.shelfie.feature.readinglist.domain.model.Shelf
+import com.shelfie.core.model.ReadingListBook
+import com.shelfie.core.model.Shelf
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 

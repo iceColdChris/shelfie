@@ -2,11 +2,12 @@ package com.shelfie.feature.readinglist.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.shelfie.feature.readinglist.domain.model.Shelf
-import com.shelfie.feature.readinglist.domain.repository.ReadingListRepository
-import com.shelfie.feature.readinglist.domain.usecase.GetShelfBooksUseCase
-import com.shelfie.feature.readinglist.domain.usecase.RemoveFromShelfUseCase
-import com.shelfie.feature.readinglist.domain.usecase.UpdateProgressUseCase
+import com.shelfie.core.model.Shelf
+import com.shelfie.core.domain.MoveToShelfUseCase
+import com.shelfie.core.domain.ReorderShelfUseCase
+import com.shelfie.core.domain.GetShelfBooksUseCase
+import com.shelfie.core.domain.RemoveFromShelfUseCase
+import com.shelfie.core.domain.UpdateProgressUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
@@ -24,7 +25,8 @@ class ReadingListViewModel @Inject constructor(
     private val getShelfBooksUseCase: GetShelfBooksUseCase,
     private val removeFromShelfUseCase: RemoveFromShelfUseCase,
     private val updateProgressUseCase: UpdateProgressUseCase,
-    private val readingListRepository: ReadingListRepository
+    private val moveToShelfUseCase: MoveToShelfUseCase,
+    private val reorderShelfUseCase: ReorderShelfUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReadingListUiState())
@@ -49,10 +51,10 @@ class ReadingListViewModel @Inject constructor(
                 viewModelScope.launch { removeFromShelfUseCase(event.bookId) }
             }
             is ReadingListUiEvent.MoveToShelf -> {
-                viewModelScope.launch { readingListRepository.moveToShelf(event.bookId, event.shelf) }
+                viewModelScope.launch { moveToShelfUseCase(event.bookId, event.shelf) }
             }
             is ReadingListUiEvent.Reorder -> {
-                viewModelScope.launch { readingListRepository.reorder(event.books) }
+                viewModelScope.launch { reorderShelfUseCase(event.books) }
             }
         }
     }

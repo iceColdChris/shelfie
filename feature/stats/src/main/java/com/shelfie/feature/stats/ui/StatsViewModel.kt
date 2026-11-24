@@ -2,7 +2,7 @@ package com.shelfie.feature.stats.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.shelfie.feature.stats.domain.usecase.GetReadingStatsUseCase
+import com.shelfie.core.domain.GetReadingStatsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -21,44 +21,52 @@ This project uses Android Gradle Plugin 9.1.0+ with Gradle 9.3.1+.
 
 ## Project Structure
 Every new feature must be encapsulated in its own Gradle module: :feature:[name].
+A feature module holds UI only; data and business logic live in the core modules.
 
-### 1. Global Core Modules
-* :app -- Root entry point. Contains NavHost, @HiltAndroidApp Application, and @AndroidEntryPoint Activity.
+### 1. Modules and allowed dependencies
+* :app -- Root entry point. Contains NavHost, @HiltAndroidApp Application, and @AndroidEntryPoint Activity. Depends on every module.
+* :feature:[name] -- Screens and ViewModels. Depends on :core:domain, :core:model, :core:ui. Never on another feature, :core:data, :core:database or :core:network.
+* :core:domain -- Use cases. Depends on :core:data (implementation) and :core:model (api).
+* :core:data -- Repository interfaces, implementations, mappers. Depends on :core:database, :core:network (implementation) and :core:model (api).
+* :core:database -- Room AppDatabase, Entities, DAOs, TypeConverters, DatabaseModule. Depends on no project module.
+* :core:network -- Retrofit/OkHttp/Moshi NetworkModule, Retrofit interfaces (e.g. OpenLibraryApi), DTOs. Depends on no project module.
+* :core:model -- Pure Kotlin domain models. No Android, depends on no project module.
 * :core:ui -- Design System, Theme.kt, and shared @Composable components.
-* :core:data -- Shared persistence and networking logic (Room AppDatabase, Hilt NetworkModule/DatabaseModule, Entities, DAOs).
+* :core:testing -- Shared test rules and fakes (pure Kotlin).
 
-### 2. Where data lives (avoiding circular deps)
-* Room AppDatabase, shared Entities, DAOs, and TypeConverters belong in :core:data because feature modules cannot see each other.
-* Feature-specific Retrofit interfaces (e.g. OpenLibraryApi) belong in the feature module under data/remote.
-* Feature modules depend on :core:data to receive DAOs and Retrofit via Hilt.
+### 2. Build configuration
+* Every module applies one convention plugin from build-logic/convention (shelfie.android.feature, shelfie.android.library, shelfie.android.library.compose, shelfie.android.hilt, shelfie.jvm.library, shelfie.android.application) and sets its namespace.
+* Do not set compileSdk, minSdk or Java versions in a module; they are set once in shelfie.android.library.
+* A new Gradle plugin is added to build-logic/convention/build.gradle.kts and applied inside a convention, never with a version in a module.
+* :app must depend on every module that has a Hilt module or an @Inject constructor.
 
-### 3. Feature Internal Blueprint
+### 3. Package Blueprint
 When creating a feature, strictly use this package hierarchy:
 
-com.shelfie.feature.[name]
-├── data
-│   ├── remote          # Retrofit interface + DTOs
-│   ├── mapper          # Internal mappers (Dto -> Domain, Entity -> Domain)
-│   └── repository      # Internal Implementation of the Repository
-├── domain
-│   ├── model           # Pure Kotlin POJOs (The truth used by UI)
-│   ├── repository      # Repository Interface
-│   └── usecase         # Single-purpose business logic (e.g., GetTasksUseCase)
-├── di                  # Hilt Module (@InstallIn(ViewModelComponent::class))
-└── ui
-    ├── [Name]Screen.kt     # Stateless Entry Composable
-    ├── [Name]ViewModel.kt  # Hilt ViewModel (Uses UseCases)
-    ├── [Name]UiState.kt    # Immutable State data class
-    └── [Name]UiEvent.kt    # Sealed class for user actions (Clicks, Inputs)
+com.shelfie.feature.[name].ui
+├── [Name]Screen.kt     # Stateless Entry Composable
+├── [Name]ViewModel.kt  # Hilt ViewModel (Uses UseCases)
+├── [Name]UiState.kt    # Immutable State data class
+└── [Name]UiEvent.kt    # Sealed class for user actions (Clicks, Inputs)
+
+The layers a feature needs go in the core modules:
+
+com.shelfie.core.model              # Pure Kotlin models (The truth used by UI)
+com.shelfie.core.domain             # Single-purpose business logic (e.g., GetShelfBooksUseCase)
+com.shelfie.core.data.repository    # Repository Interface + internal Implementation
+com.shelfie.core.data.mapper        # Internal mappers (Dto -> Model, Entity -> Model)
+com.shelfie.core.data.di            # Hilt Module binding interface to implementation
+com.shelfie.core.database           # dao, entity, converter, di
+com.shelfie.core.network            # Retrofit interface, dto, di
 
 ---
 
 ## Coding Standards
 
 ### 1. The Internal Rule
-* Within a feature module: Repository Implementations, Mappers, Retrofit interfaces, and Hilt Modules must be internal.
-* Within :core:data: The AppDatabase and Hilt Modules (NetworkModule, DatabaseModule) are internal. DAOs and Entities must be public because they are injected into feature modules across Gradle module boundaries via Hilt.
-* Public API surface: Repository Interfaces, Use Cases, Domain Models, DAOs, and Entities.
+* Within :core:data: Repository Implementations, Mappers, and the Hilt Module must be internal.
+* Within :core:database and :core:network: The AppDatabase and Hilt Modules (NetworkModule, DatabaseModule) are internal. DAOs, Entities, Retrofit interfaces and DTOs are public because :core:data uses them across a Gradle module boundary; no other module may depend on these two.
+* Public API surface seen by features: Use Cases and Models only.
 
 ### 2. UI & State (Compose)
 * UDF Only: The ViewModel exposes exactly one StateFlow<UiState>.
@@ -71,10 +79,10 @@ com.shelfie.feature.[name]
 
 ### 4. Dependency Injection (Hilt)
 * Always use @Inject constructor for class dependencies.
-* Use @ViewModelScoped for dependencies that only live within a feature screen.
 * Provide interfaces using Hilt @Binds in the di package.
-* Singleton-scoped providers (Retrofit, Room, OkHttp, Moshi) go in :core:data Hilt modules with @InstallIn(SingletonComponent::class).
-* Feature-scoped providers (API interfaces, repository bindings) go in the feature's di package with @InstallIn(ViewModelComponent::class).
+* Singleton-scoped providers (Retrofit and API interfaces, OkHttp, Moshi, Room) go in the :core:network and :core:database Hilt modules with @InstallIn(SingletonComponent::class).
+* Repository bindings go in :core:data's DataModule with @InstallIn(SingletonComponent::class), unscoped: repositories hold no state.
+* Feature modules have no Hilt modules.
 
 ---
 

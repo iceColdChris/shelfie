@@ -1,6 +1,6 @@
 package com.shelfie.feature.books.ui
 
-import com.shelfie.feature.books.domain.model.Book
+import com.shelfie.core.model.Book
 
 /**
  * Sealed interface representing user-driven actions on the Books screen.

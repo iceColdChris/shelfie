@@ -2,9 +2,9 @@ package com.shelfie.feature.books.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.shelfie.feature.books.domain.usecase.GetFavoriteBooksUseCase
-import com.shelfie.feature.books.domain.usecase.SearchBooksUseCase
-import com.shelfie.feature.books.domain.usecase.ToggleFavoriteUseCase
+import com.shelfie.core.domain.GetFavoriteBooksUseCase
+import com.shelfie.core.domain.SearchBooksUseCase
+import com.shelfie.core.domain.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList

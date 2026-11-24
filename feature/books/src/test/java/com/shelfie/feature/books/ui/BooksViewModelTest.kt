@@ -1,10 +1,10 @@
 package com.shelfie.feature.books.ui
 
-import com.shelfie.feature.books.domain.model.Book
-import com.shelfie.feature.books.domain.usecase.GetFavoriteBooksUseCase
-import com.shelfie.feature.books.domain.usecase.SearchBooksUseCase
-import com.shelfie.feature.books.domain.usecase.ToggleFavoriteUseCase
-import com.shelfie.feature.books.testutil.MainDispatcherRule
+import com.shelfie.core.model.Book
+import com.shelfie.core.domain.GetFavoriteBooksUseCase
+import com.shelfie.core.domain.SearchBooksUseCase
+import com.shelfie.core.domain.ToggleFavoriteUseCase
+import com.shelfie.core.testing.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

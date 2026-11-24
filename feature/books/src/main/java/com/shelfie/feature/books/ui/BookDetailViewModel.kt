@@ -3,10 +3,11 @@ package com.shelfie.feature.books.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.shelfie.core.data.database.dao.ReadingListDao
-import com.shelfie.core.data.database.entity.ReadingListEntry
-import com.shelfie.feature.books.domain.usecase.GetBookDetailUseCase
-import com.shelfie.feature.books.domain.usecase.ToggleFavoriteUseCase
+import com.shelfie.core.domain.AddToShelfUseCase
+import com.shelfie.core.domain.GetBookDetailUseCase
+import com.shelfie.core.domain.GetShelfEntryUseCase
+import com.shelfie.core.domain.ToggleFavoriteUseCase
+import com.shelfie.core.model.Shelf
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,14 +16,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.time.Clock
 
 @HiltViewModel
 class BookDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getBookDetailUseCase: GetBookDetailUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
-    private val readingListDao: ReadingListDao
+    private val addToShelfUseCase: AddToShelfUseCase,
+    private val getShelfEntryUseCase: GetShelfEntryUseCase
 ) : ViewModel() {
 
     private val bookId: String = checkNotNull(savedStateHandle["bookId"])
@@ -61,20 +62,12 @@ class BookDetailViewModel @Inject constructor(
     fun addToShelf(shelf: String) {
         val detail = _uiState.value.detail ?: return
         viewModelScope.launch {
-            val now = Clock.System.now().toEpochMilliseconds()
-            val nextOrder = readingListDao.getMaxSortOrder(shelf) + 1
-            readingListDao.upsert(
-                ReadingListEntry(
-                    bookId = detail.id,
-                    title = detail.title,
-                    authors = detail.authors,
-                    thumbnail = detail.thumbnail,
-                    shelf = shelf,
-                    progress = if (shelf == "FINISHED") 100 else 0,
-                    sortOrder = nextOrder,
-                    addedAt = now,
-                    finishedAt = if (shelf == "FINISHED") now else null
-                )
+            addToShelfUseCase(
+                bookId = detail.id,
+                title = detail.title,
+                authors = detail.authors,
+                thumbnail = detail.thumbnail,
+                shelf = Shelf.fromValue(shelf)
             )
             _uiState.update { it.copy(showShelfPicker = false) }
         }
@@ -96,9 +89,9 @@ class BookDetailViewModel @Inject constructor(
     }
 
     private fun observeShelfStatus() {
-        readingListDao.observeEntry(bookId)
+        getShelfEntryUseCase(bookId)
             .onEach { entry ->
-                _uiState.update { it.copy(currentShelf = entry?.shelf) }
+                _uiState.update { it.copy(currentShelf = entry?.shelf?.value) }
             }
             .launchIn(viewModelScope)
     }

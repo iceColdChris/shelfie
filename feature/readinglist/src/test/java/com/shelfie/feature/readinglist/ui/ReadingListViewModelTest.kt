@@ -1,12 +1,13 @@
 package com.shelfie.feature.readinglist.ui
 
-import com.shelfie.feature.readinglist.domain.model.ReadingListBook
-import com.shelfie.feature.readinglist.domain.model.Shelf
-import com.shelfie.feature.readinglist.domain.repository.ReadingListRepository
-import com.shelfie.feature.readinglist.domain.usecase.GetShelfBooksUseCase
-import com.shelfie.feature.readinglist.domain.usecase.RemoveFromShelfUseCase
-import com.shelfie.feature.readinglist.domain.usecase.UpdateProgressUseCase
-import com.shelfie.feature.readinglist.testutil.MainDispatcherRule
+import com.shelfie.core.model.ReadingListBook
+import com.shelfie.core.model.Shelf
+import com.shelfie.core.domain.MoveToShelfUseCase
+import com.shelfie.core.domain.ReorderShelfUseCase
+import com.shelfie.core.domain.GetShelfBooksUseCase
+import com.shelfie.core.domain.RemoveFromShelfUseCase
+import com.shelfie.core.domain.UpdateProgressUseCase
+import com.shelfie.core.testing.MainDispatcherRule
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -27,7 +28,8 @@ class ReadingListViewModelTest {
     private val getShelfBooksUseCase: GetShelfBooksUseCase = mockk()
     private val removeFromShelfUseCase: RemoveFromShelfUseCase = mockk(relaxed = true)
     private val updateProgressUseCase: UpdateProgressUseCase = mockk(relaxed = true)
-    private val readingListRepository: ReadingListRepository = mockk(relaxed = true)
+    private val moveToShelfUseCase: MoveToShelfUseCase = mockk(relaxed = true)
+    private val reorderShelfUseCase: ReorderShelfUseCase = mockk(relaxed = true)
 
     private lateinit var viewModel: ReadingListViewModel
 
@@ -35,7 +37,13 @@ class ReadingListViewModelTest {
     fun setUp() {
         // Default: WANT_TO_READ shelf returns empty list (required by init block)
         every { getShelfBooksUseCase(Shelf.WANT_TO_READ) } returns flowOf(emptyList())
-        viewModel = ReadingListViewModel(getShelfBooksUseCase, removeFromShelfUseCase, updateProgressUseCase, readingListRepository)
+        viewModel = ReadingListViewModel(
+            getShelfBooksUseCase,
+            removeFromShelfUseCase,
+            updateProgressUseCase,
+            moveToShelfUseCase,
+            reorderShelfUseCase
+        )
     }
 
     @Test
@@ -79,16 +87,16 @@ class ReadingListViewModelTest {
     }
 
     @Test
-    fun `MoveToShelf delegates to repository`() = runTest {
+    fun `MoveToShelf delegates to use case`() = runTest {
         viewModel.onEvent(ReadingListUiEvent.MoveToShelf(bookId = "b1", shelf = Shelf.FINISHED))
-        coVerify { readingListRepository.moveToShelf("b1", Shelf.FINISHED) }
+        coVerify { moveToShelfUseCase("b1", Shelf.FINISHED) }
     }
 
     @Test
-    fun `Reorder delegates to repository`() = runTest {
+    fun `Reorder delegates to use case`() = runTest {
         val books = listOf(book(bookId = "a"), book(bookId = "b"))
         viewModel.onEvent(ReadingListUiEvent.Reorder(books))
-        coVerify { readingListRepository.reorder(books) }
+        coVerify { reorderShelfUseCase(books) }
     }
 
     // ---- Helpers ----

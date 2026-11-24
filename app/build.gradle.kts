@@ -1,8 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
+    id("shelfie.android.application")
+    id("shelfie.android.hilt")
 }
 
 android {
@@ -44,14 +42,16 @@ android {
 
 dependencies {
     implementation(project(":core:ui"))
-    implementation(project(":core:data"))
     implementation(project(":feature:books"))
     implementation(project(":feature:readinglist"))
     implementation(project(":feature:stats"))
 
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    // Hilt builds the whole graph here, so every module that contributes a binding
+    // (a Hilt module or an @Inject constructor) must be on this classpath.
+    implementation(project(":core:data"))
+    implementation(project(":core:database"))
+    implementation(project(":core:network"))
+    implementation(project(":core:domain"))
 
     // Compose
     implementation(platform(libs.compose.bom))

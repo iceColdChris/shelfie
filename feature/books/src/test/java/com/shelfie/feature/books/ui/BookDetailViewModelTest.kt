@@ -1,12 +1,14 @@
 package com.shelfie.feature.books.ui
 
 import androidx.lifecycle.SavedStateHandle
-import com.shelfie.core.data.database.dao.ReadingListDao
-import com.shelfie.core.data.database.entity.ReadingListEntry
-import com.shelfie.feature.books.domain.model.BookDetail
-import com.shelfie.feature.books.domain.usecase.GetBookDetailUseCase
-import com.shelfie.feature.books.domain.usecase.ToggleFavoriteUseCase
-import com.shelfie.feature.books.testutil.MainDispatcherRule
+import com.shelfie.core.domain.AddToShelfUseCase
+import com.shelfie.core.domain.GetShelfEntryUseCase
+import com.shelfie.core.model.ReadingListBook
+import com.shelfie.core.model.Shelf
+import com.shelfie.core.model.BookDetail
+import com.shelfie.core.domain.GetBookDetailUseCase
+import com.shelfie.core.domain.ToggleFavoriteUseCase
+import com.shelfie.core.testing.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -20,6 +22,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Instant
 
 class BookDetailViewModelTest {
 
@@ -29,18 +32,25 @@ class BookDetailViewModelTest {
     private val savedStateHandle = SavedStateHandle(mapOf("bookId" to BOOK_ID))
     private val getBookDetailUseCase: GetBookDetailUseCase = mockk()
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase = mockk(relaxed = true)
-    private val readingListDao: ReadingListDao = mockk()
+    private val addToShelfUseCase: AddToShelfUseCase = mockk(relaxed = true)
+    private val getShelfEntryUseCase: GetShelfEntryUseCase = mockk()
 
     private lateinit var viewModel: BookDetailViewModel
 
     private fun createViewModel() {
-        viewModel = BookDetailViewModel(savedStateHandle, getBookDetailUseCase, toggleFavoriteUseCase, readingListDao)
+        viewModel = BookDetailViewModel(
+            savedStateHandle,
+            getBookDetailUseCase,
+            toggleFavoriteUseCase,
+            addToShelfUseCase,
+            getShelfEntryUseCase
+        )
     }
 
     @Test
     fun `successful load sets detail and clears isLoading`() = runTest {
         coEvery { getBookDetailUseCase(BOOK_ID) } returns sampleDetail
-        every { readingListDao.observeEntry(BOOK_ID) } returns flowOf(null)
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(null)
 
         createViewModel()
 
@@ -53,7 +63,7 @@ class BookDetailViewModelTest {
     @Test
     fun `failed load sets errorMessage and clears isLoading`() = runTest {
         coEvery { getBookDetailUseCase(BOOK_ID) } throws RuntimeException("Not found")
-        every { readingListDao.observeEntry(BOOK_ID) } returns flowOf(null)
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(null)
 
         createViewModel()
 
@@ -66,7 +76,7 @@ class BookDetailViewModelTest {
     @Test
     fun `toggleFavorite inverts isFavorite in detail state`() = runTest {
         coEvery { getBookDetailUseCase(BOOK_ID) } returns sampleDetail.copy(isFavorite = false)
-        every { readingListDao.observeEntry(BOOK_ID) } returns flowOf(null)
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(null)
 
         createViewModel()
         viewModel.toggleFavorite()
@@ -78,7 +88,7 @@ class BookDetailViewModelTest {
     @Test
     fun `showShelfPicker sets showShelfPicker to true`() = runTest {
         coEvery { getBookDetailUseCase(BOOK_ID) } returns sampleDetail
-        every { readingListDao.observeEntry(BOOK_ID) } returns flowOf(null)
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(null)
 
         createViewModel()
         viewModel.showShelfPicker()
@@ -89,7 +99,7 @@ class BookDetailViewModelTest {
     @Test
     fun `dismissShelfPicker sets showShelfPicker to false`() = runTest {
         coEvery { getBookDetailUseCase(BOOK_ID) } returns sampleDetail
-        every { readingListDao.observeEntry(BOOK_ID) } returns flowOf(null)
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(null)
 
         createViewModel()
         viewModel.showShelfPicker()
@@ -99,23 +109,39 @@ class BookDetailViewModelTest {
     }
 
     @Test
-    fun `observeShelfStatus reflects current shelf from dao`() = runTest {
-        val entry = ReadingListEntry(
-            bookId = BOOK_ID, title = "Dune", authors = listOf("F. Herbert"),
-            thumbnail = null, shelf = "READING", addedAt = 0L,
+    fun `observeShelfStatus reflects current shelf of the entry`() = runTest {
+        val entry = ReadingListBook(
+            bookId = BOOK_ID, title = "Dune", authors = persistentListOf("F. Herbert"),
+            thumbnail = null, shelf = Shelf.CURRENTLY_READING, progress = 0, sortOrder = 0,
+            addedAt = Instant.fromEpochMilliseconds(0), finishedAt = null,
         )
         coEvery { getBookDetailUseCase(BOOK_ID) } returns sampleDetail
-        every { readingListDao.observeEntry(BOOK_ID) } returns flowOf(entry)
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(entry)
 
         createViewModel()
 
-        assertEquals("READING", viewModel.uiState.value.currentShelf)
+        assertEquals("CURRENTLY_READING", viewModel.uiState.value.currentShelf)
+    }
+
+    @Test
+    fun `addToShelf adds the book to the chosen shelf and closes the picker`() = runTest {
+        coEvery { getBookDetailUseCase(BOOK_ID) } returns sampleDetail
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(null)
+
+        createViewModel()
+        viewModel.showShelfPicker()
+        viewModel.addToShelf("FINISHED")
+
+        coVerify {
+            addToShelfUseCase(BOOK_ID, "Dune", sampleDetail.authors, null, Shelf.FINISHED)
+        }
+        assertFalse(viewModel.uiState.value.showShelfPicker)
     }
 
     @Test
     fun `observeShelfStatus sets null shelf when no entry exists`() = runTest {
         coEvery { getBookDetailUseCase(BOOK_ID) } returns sampleDetail
-        every { readingListDao.observeEntry(BOOK_ID) } returns flowOf(null)
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(null)
 
         createViewModel()
 
@@ -125,7 +151,7 @@ class BookDetailViewModelTest {
     @Test
     fun `retry reloads detail after initial failure`() = runTest {
         coEvery { getBookDetailUseCase(BOOK_ID) } throws RuntimeException("Error") andThen sampleDetail
-        every { readingListDao.observeEntry(BOOK_ID) } returns flowOf(null)
+        every { getShelfEntryUseCase(BOOK_ID) } returns flowOf(null)
 
         createViewModel()
         viewModel.retry()

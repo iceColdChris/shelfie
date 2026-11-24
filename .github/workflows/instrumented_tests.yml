@@ -41,7 +41,7 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: Nexus 6
-          script: ./gradlew :core:data:connectedDebugAndroidTest
+          script: ./gradlew :core:database:connectedDebugAndroidTest
 
       - name: Upload instrumented test reports
         uses: actions/upload-artifact@v4

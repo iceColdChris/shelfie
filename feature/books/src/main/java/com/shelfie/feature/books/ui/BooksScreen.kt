@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.shelfie.feature.books.domain.model.Book
+import com.shelfie.core.model.Book
 import com.valentinilk.shimmer.shimmer
 
 @Composable

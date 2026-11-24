@@ -1,57 +1,24 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
+    id("shelfie.android.library")
+    id("shelfie.android.hilt")
 }
 
 android {
     namespace = "com.shelfie.core.data"
-    compileSdk = 36
-
-    defaultConfig {
-        minSdk = 24
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    buildFeatures {
-        buildConfig = true
-    }
 }
 
 dependencies {
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    // Repository interfaces return model types.
+    api(project(":core:model"))
+    implementation(project(":core:database"))
+    implementation(project(":core:network"))
 
-    // Room
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
-
-    // Retrofit + OkHttp + Moshi
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.moshi)
-    implementation(libs.okhttp.logging)
-    implementation(libs.moshi.kotlin)
-
-    // Timber
-    implementation(libs.timber)
-
-    // Coroutines
     implementation(libs.coroutines.android)
+    implementation(libs.kotlinx.datetime)
 
     // Testing
     testImplementation(libs.junit)
-
-    // Instrumented tests
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.test.core)
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.coroutines.test)
-    androidTestImplementation(libs.turbine)
+    testImplementation(libs.mockk)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.turbine)
 }

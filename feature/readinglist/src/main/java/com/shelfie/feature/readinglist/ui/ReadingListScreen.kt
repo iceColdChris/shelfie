@@ -56,8 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.shelfie.feature.readinglist.domain.model.ReadingListBook
-import com.shelfie.feature.readinglist.domain.model.Shelf
+import com.shelfie.core.model.ReadingListBook
+import com.shelfie.core.model.Shelf
 
 @Composable
 fun ReadingListScreen(

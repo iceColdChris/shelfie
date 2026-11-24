@@ -1,7 +1,7 @@
 package com.shelfie.feature.readinglist.ui
 
-import com.shelfie.feature.readinglist.domain.model.ReadingListBook
-import com.shelfie.feature.readinglist.domain.model.Shelf
+import com.shelfie.core.model.ReadingListBook
+import com.shelfie.core.model.Shelf
 
 sealed interface ReadingListUiEvent {
     data class SelectShelf(val shelf: Shelf) : ReadingListUiEvent

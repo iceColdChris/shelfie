@@ -1,7 +1,7 @@
 package com.shelfie.feature.stats.ui
 
 import androidx.compose.runtime.Immutable
-import com.shelfie.feature.stats.domain.model.ReadingStats
+import com.shelfie.core.model.ReadingStats
 
 @Immutable
 data class StatsUiState(

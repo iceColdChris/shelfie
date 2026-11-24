@@ -1,7 +1,7 @@
 package com.shelfie.feature.books.ui
 
 import androidx.compose.runtime.Immutable
-import com.shelfie.feature.books.domain.model.BookDetail
+import com.shelfie.core.model.BookDetail
 
 /**
  * Immutable UI state for the Book Detail screen.
