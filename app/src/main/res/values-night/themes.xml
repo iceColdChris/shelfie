@@ -1,4 +1,4 @@
 <resources>
     <!-- Base application theme. Compose handles the real theming. -->
-    <style name="Theme.SampleApp" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Shelfie" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

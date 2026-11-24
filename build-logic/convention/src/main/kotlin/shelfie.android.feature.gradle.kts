@@ -8,7 +8,7 @@ val libs = the<VersionCatalogsExtension>().named("libs")
 // A feature is a UI module: screens and view models. It reaches data only through
 // :core:domain use cases, so it never depends on :core:data, :core:database or :core:network.
 dependencies {
-    "implementation"(project(":core:ui"))
+    "implementation"(project(":core:designsystem"))
     "implementation"(project(":core:domain"))
     "implementation"(project(":core:model"))
 

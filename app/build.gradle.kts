@@ -27,7 +27,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:ui"))
+    implementation(project(":core:designsystem"))
     implementation(project(":feature:books"))
     implementation(project(":feature:readinglist"))
     implementation(project(":feature:stats"))
