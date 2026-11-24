@@ -1,6 +1,26 @@
-// The app module's own android {} block stays in app/build.gradle.kts; this only puts
-// the plugins on its classpath, which a plain id("com.android.application") cannot do.
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+}
+
+android {
+    compileSdk {
+        version = release(ShelfieBuild.COMPILE_SDK) {
+            minorApiLevel = ShelfieBuild.COMPILE_SDK_MINOR
+        }
+    }
+
+    defaultConfig {
+        minSdk = ShelfieBuild.MIN_SDK
+        targetSdk = ShelfieBuild.TARGET_SDK
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        compose = true
+    }
+}
+
+kotlin {
+    jvmToolchain(ShelfieBuild.JVM_TOOLCHAIN)
 }

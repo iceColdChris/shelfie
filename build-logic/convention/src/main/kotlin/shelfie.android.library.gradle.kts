@@ -3,15 +3,18 @@ plugins {
 }
 
 android {
-    compileSdk = 36
+    compileSdk {
+        version = release(ShelfieBuild.COMPILE_SDK) {
+            minorApiLevel = ShelfieBuild.COMPILE_SDK_MINOR
+        }
+    }
 
     defaultConfig {
-        minSdk = 24
+        minSdk = ShelfieBuild.MIN_SDK
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+}
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
+kotlin {
+    jvmToolchain(ShelfieBuild.JVM_TOOLCHAIN)
 }
