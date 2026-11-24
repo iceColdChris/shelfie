@@ -1,7 +1,8 @@
 package com.shelfie.core.database.dao
 
 import android.content.Context
-import androidx.room.Room
+import androidx.room3.Room
+import androidx.sqlite.driver.AndroidSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
@@ -28,8 +29,8 @@ class BookDaoTest {
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
-            .allowMainThreadQueries()
+        db = Room.inMemoryDatabaseBuilder<AppDatabase>(context)
+            .setDriver(AndroidSQLiteDriver())
             .build()
         dao = db.bookDao()
     }

@@ -1,6 +1,5 @@
 package com.shelfie.feature.books.ui
 
-import androidx.lifecycle.SavedStateHandle
 import com.shelfie.core.domain.AddToShelfUseCase
 import com.shelfie.core.domain.GetShelfEntryUseCase
 import com.shelfie.core.model.ReadingListBook
@@ -29,7 +28,6 @@ class BookDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val savedStateHandle = SavedStateHandle(mapOf("bookId" to BOOK_ID))
     private val getBookDetailUseCase: GetBookDetailUseCase = mockk()
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase = mockk(relaxed = true)
     private val addToShelfUseCase: AddToShelfUseCase = mockk(relaxed = true)
@@ -39,7 +37,7 @@ class BookDetailViewModelTest {
 
     private fun createViewModel() {
         viewModel = BookDetailViewModel(
-            savedStateHandle,
+            BOOK_ID,
             getBookDetailUseCase,
             toggleFavoriteUseCase,
             addToShelfUseCase,

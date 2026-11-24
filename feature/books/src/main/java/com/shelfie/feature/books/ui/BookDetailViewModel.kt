@@ -1,6 +1,5 @@
 package com.shelfie.feature.books.ui
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shelfie.core.domain.AddToShelfUseCase
@@ -8,25 +7,32 @@ import com.shelfie.core.domain.GetBookDetailUseCase
 import com.shelfie.core.domain.GetShelfEntryUseCase
 import com.shelfie.core.domain.ToggleFavoriteUseCase
 import com.shelfie.core.model.Shelf
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class BookDetailViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+@HiltViewModel(assistedFactory = BookDetailViewModel.Factory::class)
+class BookDetailViewModel @AssistedInject constructor(
+    @Assisted private val bookId: String,
     private val getBookDetailUseCase: GetBookDetailUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     private val addToShelfUseCase: AddToShelfUseCase,
     private val getShelfEntryUseCase: GetShelfEntryUseCase
 ) : ViewModel() {
 
-    private val bookId: String = checkNotNull(savedStateHandle["bookId"])
+    // The navigation layer supplies bookId from the route, so it is typed and cannot be missing.
+    @AssistedFactory
+    interface Factory {
+        fun create(bookId: String): BookDetailViewModel
+    }
 
     private val _uiState = MutableStateFlow(BookDetailUiState())
     val uiState: StateFlow<BookDetailUiState> = _uiState
@@ -80,6 +86,8 @@ class BookDetailViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(detail = detail, isLoading = false)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(errorMessage = e.message, isLoading = false)

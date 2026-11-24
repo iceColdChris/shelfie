@@ -1,6 +1,6 @@
 package com.shelfie.core.database.converter
 
-import androidx.room.TypeConverter
+import androidx.room3.ColumnTypeConverter
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -15,12 +15,12 @@ internal class Converters {
         Types.newParameterizedType(List::class.java, String::class.java)
     )
 
-    @TypeConverter
+    @ColumnTypeConverter
     fun fromStringList(value: List<String>?): String {
         return listAdapter.toJson(value ?: emptyList())
     }
 
-    @TypeConverter
+    @ColumnTypeConverter
     fun toStringList(value: String): List<String> {
         return listAdapter.fromJson(value) ?: emptyList()
     }

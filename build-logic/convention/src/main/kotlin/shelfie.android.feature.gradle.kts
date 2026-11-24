@@ -12,7 +12,7 @@ dependencies {
     "implementation"(project(":core:domain"))
     "implementation"(project(":core:model"))
 
-    "implementation"(libs.findLibrary("hilt-navigation-compose").get())
+    "implementation"(libs.findLibrary("hilt-lifecycle-viewmodel-compose").get())
     "implementation"(libs.findLibrary("compose-material-icons").get())
     "implementation"(libs.findLibrary("compose-material-icons-extended").get())
     "implementation"(libs.findLibrary("lifecycle-runtime-compose").get())

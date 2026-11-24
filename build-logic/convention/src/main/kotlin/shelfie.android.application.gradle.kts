@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+    // Navigation 3 routes are @Serializable NavKeys, and the app module owns them.
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {

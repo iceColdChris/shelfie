@@ -10,7 +10,7 @@ android {
 dependencies {
     // Room
     implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
+    implementation(libs.sqlite.framework)
     ksp(libs.room.compiler)
 
     // Moshi, for the List<String> type converter

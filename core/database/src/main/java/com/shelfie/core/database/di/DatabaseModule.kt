@@ -1,7 +1,8 @@
 package com.shelfie.core.database.di
 
 import android.content.Context
-import androidx.room.Room
+import androidx.room3.Room
+import androidx.sqlite.driver.AndroidSQLiteDriver
 import com.shelfie.core.database.AppDatabase
 import com.shelfie.core.database.dao.BookDao
 import com.shelfie.core.database.dao.ReadingListDao
@@ -19,11 +20,12 @@ internal object DatabaseModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "shelfie_db"
-        ).fallbackToDestructiveMigration(dropAllTables = true).build()
+        // AndroidSQLiteDriver keeps the platform SQLite that wrote the existing database file;
+        // BundledSQLiteDriver would add a native library for features this app does not use.
+        return Room.databaseBuilder<AppDatabase>(context, "shelfie_db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .setDriver(AndroidSQLiteDriver())
+            .build()
     }
 
     @Provides

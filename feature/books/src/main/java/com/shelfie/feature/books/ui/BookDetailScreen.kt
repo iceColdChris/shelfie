@@ -40,7 +40,8 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -55,7 +56,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.shelfie.core.model.BookDetail
@@ -65,8 +65,8 @@ import com.valentinilk.shimmer.shimmer
 @Composable
 fun BookDetailScreen(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: BookDetailViewModel = hiltViewModel()
+    viewModel: BookDetailViewModel,
+    modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -140,7 +140,7 @@ fun BookDetailScreen(
 
     // Shelf picker bottom sheet
     if (state.showShelfPicker) {
-        val sheetState = rememberModalBottomSheetState()
+        val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
         ModalBottomSheet(
             onDismissRequest = { viewModel.dismissShelfPicker() },
             sheetState = sheetState
@@ -157,12 +157,7 @@ fun BookDetailScreen(
                     "FINISHED" to "Finished"
                 ).forEach { (value, label) ->
                     ListItem(
-                        headlineContent = { Text(label) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .let { mod ->
-                                mod
-                            },
+                        modifier = Modifier.fillMaxWidth(),
                         trailingContent = {
                             if (state.currentShelf == value) {
                                 Text(
@@ -172,7 +167,9 @@ fun BookDetailScreen(
                                 )
                             }
                         }
-                    )
+                    ) {
+                        Text(label)
+                    }
                     Button(
                         onClick = { viewModel.addToShelf(value) },
                         enabled = state.currentShelf != value,

@@ -7,6 +7,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
@@ -23,7 +24,7 @@ internal class StatsRepositoryImpl @Inject constructor(
         val now = Clock.System.now()
         val today = now.toLocalDateTime(tz)
 
-        val startOfMonth = LocalDate(today.year, today.monthNumber, 1).atStartOfDayIn(tz)
+        val startOfMonth = LocalDate(today.year, today.month.number, 1).atStartOfDayIn(tz)
         val startOfYear = LocalDate(today.year, 1, 1).atStartOfDayIn(tz)
 
         return combine(
@@ -65,7 +66,7 @@ internal class StatsRepositoryImpl @Inject constructor(
     ): kotlinx.collections.immutable.ImmutableList<MonthlyCount> {
         val now = Clock.System.now().toLocalDateTime(tz)
         val months = (0 until 6).reversed().map { offset ->
-            var month = now.monthNumber - offset
+            var month = now.month.number - offset
             var year = now.year
             if (month <= 0) {
                 month += 12
@@ -76,7 +77,7 @@ internal class StatsRepositoryImpl @Inject constructor(
 
         val grouped = finishedTimestamps.groupBy { ts ->
             val dt = Instant.fromEpochMilliseconds(ts).toLocalDateTime(tz)
-            dt.year to dt.monthNumber
+            dt.year to dt.month.number
         }
 
         return months.map { (year, month) ->

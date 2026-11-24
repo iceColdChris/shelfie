@@ -29,7 +29,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,9 +38,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,7 +52,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.shelfie.core.model.ReadingListBook
@@ -94,7 +93,7 @@ internal fun ReadingListContent(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            TabRow(
+            PrimaryTabRow(
                 selectedTabIndex = Shelf.entries.indexOf(state.selectedShelf)
             ) {
                 Shelf.entries.forEach { shelf ->
@@ -266,25 +265,29 @@ private fun ReadingListItem(
                 // Progress for "Currently Reading"
                 if (book.shelf == Shelf.CURRENTLY_READING) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    var sliderValue by remember(book.bookId, book.progress) {
-                        mutableFloatStateOf(book.progress.toFloat())
+                    // key() resets the slider when progress changes elsewhere, as the old remember keys did.
+                    key(book.bookId, book.progress) {
+                        val sliderState = rememberSliderState(
+                            value = book.progress.toFloat(),
+                            trackRange = 0f..100f
+                        )
+                        Text(
+                            text = "${sliderState.value.toInt()}%",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Slider(
+                            state = sliderState,
+                            onValueChange = { sliderState.value = it },
+                            onValueChangeFinished = { onProgressChange(sliderState.value.toInt()) },
+                            modifier = Modifier
+                                .height(24.dp)
+                                .semantics {
+                                    stateDescription =
+                                        "Reading progress: ${sliderState.value.toInt()} percent"
+                                }
+                        )
                     }
-                    Text(
-                        text = "${sliderValue.toInt()}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Slider(
-                        value = sliderValue,
-                        onValueChange = { sliderValue = it },
-                        onValueChangeFinished = { onProgressChange(sliderValue.toInt()) },
-                        valueRange = 0f..100f,
-                        modifier = Modifier
-                            .height(24.dp)
-                            .semantics {
-                                stateDescription = "Reading progress: ${sliderValue.toInt()} percent"
-                            }
-                    )
                 }
 
                 // Progress bar for all shelves (except "Want to Read" with 0%)
