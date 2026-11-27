@@ -26,7 +26,7 @@ jobs:
           java-version: 17
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       # KVM acceleration is required for x86_64 emulators on GitHub-hosted runners
       - name: Enable KVM
